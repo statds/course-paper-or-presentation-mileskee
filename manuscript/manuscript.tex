@@ -2,8 +2,11 @@
 
 \usepackage{amsmath}
 \usepackage[margin = 1in]{geometry}
+\usepackage{graphicx}
+\usepackage[booktabs]
 \usepackage[colorlinks=true, citecolor=blue]{hyperref}
 \usepackage{hyperref}
+\usepackage{underscore}
 
 \title{Using Machine Learning to Estimate the Changes of Success of College Basketball Transfers}
 \author{Miles Kee}
@@ -14,5 +17,40 @@
 \begin{abstract}
 When the NCAA decided to eliminate the rule of athletes needing to sit out a season after transferring due to the COVID-19 pandemic, it created a frenzy in the college basketball world. Record numbers of players transferring were seen immediately after this ruling. Since then, the NCAA has decided to make this elimination permanent. This, combined with student athletes newfound ability to profit off their name, image, and likeness, has turned the college basketball offseason into a scene that is more akin to the free agency period in professional sports. Over 1500 players entered the transfer portal during the 2023 offseason. College coaches have began rebuilding their entire teams using the transfer portal instead of the traditional program-building methods of recruiting well and emphasizing development. New St. John's coach Rick Pitino was hired in March, and by early May, he had already brought in eight new transfers while losing another eight to the transfer portal. This type of roster turnover has become routine in the college game, especially when a coach is fired or hired. 
 \end{abstract}
+
+\section{Data}
+\label{sec:data}
+The data for this project comes courtesy of \href{barttorvik.com}{barttorvik.com}. The files titled "transferYEAR" contain each player who transferred schools in a given year. For example, the file named "transfer22" contains each transfer that started at their new school during the 2021-2022 season. The rows in each of the transfer files are as follows: player_name, team, conf, min_per, ORtg, usg, eFG, ORB\_per, DRB\_per, AST\_per, TO\_per, blk\_per, stl\_per, ftr, yr, ht, new.school, and dbpm. Table~\ref{tab:data_expl} explains what each of these variables means. eFG percentage was chosen instead of traditional FG percentage because it properly weighs the added impact of a three pointer when compared to a two pointer by multiplying three pointers made by 1.5. The formula is \(eFG=(2PM+1.5*3PM)/(FGA)\, where 2PM and 3PM are two and three pointers made, respectively, and FGA is field goals attempted. The offensive statistics in the data are ORtg, usg, eFG, ORB\_per, AST\_per, TO\_per, and ftr. The defensive statistics are DRB\_per, blk\_per, stl\_per, and dbpm. There are many more stats available to track a player's offensive impact when compared to the stats available to track a player's defensive impact. Defense is much more nuanced, as not every good defensive play shows up in a box score. This is why dbpm is used, as it reflects a team's full defensive performance when a player is on the court, allowing us to better quantify and inherently non-quantifiable concept. The data contains files titled "statsYEAR," which are used to look at a player's stats the year after he transferred. The same statistics are used for both the transfer and stats files. Finally, the "fulldata" file contains each transfer from 2021-2023, their stats from the year before they transferred, and their stats from the year after they transferred. The years 2021, 2022, and 2023 are looked at because these are the years the "free agency" aspect of the transfer portal started. The 2024 transfers are excluded from this study because at the time it was conducted, the new season had not given a significant enough sample size to evaluate the players' performances.
+
+\begin{table}[tbp]
+	\caption{Variable Explanations}
+	\label{tab:data_expl}
+\centering
+\begin{tabular}{rrr}
+	\toprule
+\textbf{Variable} & \textbf{Explanation} \\
+	\midrule
+player\_name & The name of the player \\
+team & The team the player played for in the season before he transferred \\
+conf & The conference the team plays in \\
+min\_per & The percentage of the team's minutes a player played in \\
+ORtg & The number of points scored by the player's team per 100 possessions when he was on the court \\
+usg & The percentage of a team's plays used by the player while on the floor, including attempted shots, assists, turnovers, and free throws \\
+eFG & Total points scored on field goals attempted divided by 2*field goals attempted \\
+ORB\_per & The percentage of available offensive rebounds a player got \\
+DRB\_per & The percentage of available defensive rebounds a player got \\
+AST\_per & The percentage of made shots a player assisted while on the court \\
+TO\_per & The percentage of turnovers a player contributed to while on the court \\
+blk\_per & The percentage of opponent shot attempts blocked by a player while on the court \\
+stl\_per & The percentage of opponent possessions ending in a steal by the player \\
+ftr & The number of free throws a player attempts per field goal attempt \\
+yr & Year in college of the player \\
+ht & Height of the player \\
+new.school & School the player transferred to \\
+dbpm & The player's defensive contribution in terms of points above league average per 100 possessions \\
+	\bottomrule
+\end{tabular}
+\end{table}
+
 
 \end{document}
