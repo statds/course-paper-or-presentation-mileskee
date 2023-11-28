@@ -9,3 +9,11 @@ write.csv(transfer23,'/Users/mileskee7/Desktop/College/Senior Year/W/course-pape
 write.csv(transfer22,'/Users/mileskee7/Desktop/College/Senior Year/W/course-paper-or-presentation-mileskee/transfer22.csv')
 write.csv(transfer21,'/Users/mileskee7/Desktop/College/Senior Year/W/course-paper-or-presentation-mileskee/transfer21.csv')
 write.csv(transfer20,'/Users/mileskee7/Desktop/College/Senior Year/W/course-paper-or-presentation-mileskee/transfer20.csv')
+stats21 <- as.data.frame(read.csv('https://barttorvik.com/getadvstats.php?year=2021&csv=1',header=F)) #corresponds to transfer21
+stats22 <- as.data.frame(read.csv('https://barttorvik.com/getadvstats.php?year=2022&csv=1',header=F)) #corresponds to transfer22
+stats23 <- as.data.frame(read.csv('https://barttorvik.com/getadvstats.php?year=2023&csv=1',header=F)) #corresponds to transfer23
+stats24 <- as.data.frame(read.csv('https://barttorvik.com/getadvstats.php?year=2024&csv=1',header=F)) #corresponds to transfer24
+write.csv(stats21,'/Users/mileskee7/Desktop/College/Senior Year/W/course-paper-or-presentation-mileskee/stats21.csv')
+write.csv(stats22,'/Users/mileskee7/Desktop/College/Senior Year/W/course-paper-or-presentation-mileskee/stats22.csv')
+write.csv(stats23,'/Users/mileskee7/Desktop/College/Senior Year/W/course-paper-or-presentation-mileskee/stats23.csv')
+write.csv(stats24,'/Users/mileskee7/Desktop/College/Senior Year/W/course-paper-or-presentation-mileskee/stats24.csv')
