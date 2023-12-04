@@ -3,12 +3,11 @@
 \usepackage{amsmath}
 \usepackage[margin = 1in]{geometry}
 \usepackage{graphicx}
-\usepackage[booktabs]
+\usepackage{booktabs}
 \usepackage[colorlinks=true, citecolor=blue]{hyperref}
-\usepackage{hyperref}
 \usepackage{underscore}
 
-\title{Using Machine Learning to Estimate the Changes of Success of College Basketball Transfers}
+\title{Using Statistical Modeling to Estimate the Changes of Success of College Basketball Transfers}
 \author{Miles Kee}
 
 \begin{document}
@@ -20,37 +19,112 @@ When the NCAA decided to eliminate the rule of athletes needing to sit out a sea
 
 \section{Data}
 \label{sec:data}
-The data for this project comes courtesy of \href{barttorvik.com}{barttorvik.com}. The files titled "transferYEAR" contain each player who transferred schools in a given year. For example, the file named "transfer22" contains each transfer that started at their new school during the 2021-2022 season. The rows in each of the transfer files are as follows: player_name, team, conf, min_per, ORtg, usg, eFG, ORB\_per, DRB\_per, AST\_per, TO\_per, blk\_per, stl\_per, ftr, yr, ht, new.school, and dbpm. Table~\ref{tab:data_expl} explains what each of these variables means. eFG percentage was chosen instead of traditional FG percentage because it properly weighs the added impact of a three pointer when compared to a two pointer by multiplying three pointers made by 1.5. The formula is \(eFG=(2PM+1.5*3PM)/(FGA)\, where 2PM and 3PM are two and three pointers made, respectively, and FGA is field goals attempted. The offensive statistics in the data are ORtg, usg, eFG, ORB\_per, AST\_per, TO\_per, and ftr. The defensive statistics are DRB\_per, blk\_per, stl\_per, and dbpm. There are many more stats available to track a player's offensive impact when compared to the stats available to track a player's defensive impact. Defense is much more nuanced, as not every good defensive play shows up in a box score. This is why dbpm is used, as it reflects a team's full defensive performance when a player is on the court, allowing us to better quantify and inherently non-quantifiable concept. The data contains files titled "statsYEAR," which are used to look at a player's stats the year after he transferred. The same statistics are used for both the transfer and stats files. Finally, the "fulldata" file contains each transfer from 2021-2023, their stats from the year before they transferred, and their stats from the year after they transferred. The years 2021, 2022, and 2023 are looked at because these are the years the "free agency" aspect of the transfer portal started. The 2024 transfers are excluded from this study because at the time it was conducted, the new season had not given a significant enough sample size to evaluate the players' performances.
+The data for this project comes courtesy of \href{barttorvik.com}{barttorvik.com}. The files titled "transferYEAR" contain each player who transferred schools in a given year. For example, the file named "transfer22" contains each transfer that started at their new school during the 2021-2022 season. The rows in each of the transfer files are as follows: player_name, team, conf, min_per, ORtg, usg, eFG, ORB\_per, DRB\_per, AST\_per, TO\_per, blk\_per, stl\_per, ftr, yr, ht, new.school, and dbpm. The table~\ref{tab:data_expl} explains what each of these variables means. eFG percentage was chosen instead of traditional FG percentage because it properly weighs the added impact of a three pointer when compared to a two pointer by multiplying three pointers made by 1.5. The formula is \(eFG=(2PM+1.5*3PM)/(FGA)\, where 2PM and 3PM are two and three pointers made, respectively, and FGA is field goals attempted. The offensive statistics in the data are ORtg, usg, eFG, ORB\_per, AST\_per, TO\_per, and ftr. The defensive statistics are DRB\_per, blk\_per, stl\_per, and dbpm. There are many more stats available to track a player's offensive impact when compared to the stats available to track a player's defensive impact. Defense is much more nuanced, as not every good defensive play shows up in a box score. This is why dbpm is used, as it reflects a team's full defensive performance when a player is on the court, allowing us to better quantify and inherently non-quantifiable concept. The data contains files titled "statsYEAR," which are used to look at a player's stats the year after he transferred. The same statistics are used for both the transfer and stats files. Finally, the "fulldata" file contains each transfer from 2021-2023, their stats from the year before they transferred, and their stats from the year after they transferred. The years 2021, 2022, and 2023 are looked at because these are the years the "free agency" aspect of the transfer portal started. The 2024 transfers are excluded from this study because at the time it was conducted, the new season had not given a significant enough sample size to evaluate the players' performances. This leaves us with 2093 players in the "full data" file. The target variables to predict are ORtg and dbpm, as those do the best job of encapsulating a player's impact on offense and defense, respectively, into a single number.
+\subsection{Feature Engineering}
+\label{subsec:feature_eng}
+Once the data was loaded in, I added some features to the data. The variable created called "fromp5" indicates whether a player transferred from a power conference school which in this case are: Big East, Big 12, Big 10, Pac 12, ACC, and SEC. The variable created called "top5" indicates whether a player transferred to a power conference school. The variable called "oimp" indicates whether a player improved their offensive rating from one year to the next year, and the variable called "dimp" indicates the same for a player's dpbm. For all of these created variables, a 1 indicates a "true" value while a 0 indicates a "false" value.
 
-\begin{table}[tbp]
-	\caption{Variable Explanations}
-	\label{tab:data_expl}
+
+\begin{table}[]
 \centering
-\begin{tabular}{rrr}
-	\toprule
-\textbf{Variable} & \textbf{Explanation} \\
-	\midrule
-player\_name & The name of the player \\
-team & The team the player played for in the season before he transferred \\
-conf & The conference the team plays in \\
-min\_per & The percentage of the team's minutes a player played in \\
-ORtg & The number of points scored by the player's team per 100 possessions when he was on the court \\
-usg & The percentage of a team's plays used by the player while on the floor, including attempted shots, assists, turnovers, and free throws \\
-eFG & Total points scored on field goals attempted divided by 2*field goals attempted \\
-ORB\_per & The percentage of available offensive rebounds a player got \\
-DRB\_per & The percentage of available defensive rebounds a player got \\
-AST\_per & The percentage of made shots a player assisted while on the court \\
-TO\_per & The percentage of turnovers a player contributed to while on the court \\
-blk\_per & The percentage of opponent shot attempts blocked by a player while on the court \\
-stl\_per & The percentage of opponent possessions ending in a steal by the player \\
-ftr & The number of free throws a player attempts per field goal attempt \\
-yr & Year in college of the player \\
-ht & Height of the player \\
-new.school & School the player transferred to \\
-dbpm & The player's defensive contribution in terms of points above league average per 100 possessions \\
-	\bottomrule
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{@{}ll@{}}
+\toprule
+Variable & Explanation \\
+\midrule
+player\_name & The name of the player                                                  \\ 
+team         & The team the player played for in the season before he transferred      \\
+conf         & The conference the team plays in                                        \\
+min\_per     & The percentage of a team's minutes a player played in                   \\
+ORtg     & The number of points scored by the player's team per 100 possessions when he was on the court   \\
+usg          & The percentage of a team's plays used by the player while on the floor, \\
+eFG          & A metric to measure a player's shooting success                         \\
+ORB\_per     & The percentage of available offensive rebounds a player got             \\
+DRB\_per     & The percentage of available defensive rebounds a player got             \\
+AST\_per     & The percentage of made shots a player assisted while on the court       \\
+TO\_per      & The percentage of turnovers a player committed while on the court       \\
+blk\_per & The percentage of opponent shot attempts blocked by a player while on the court                 \\
+stl\_per & The percentage of opponent possessions ending in a steal by the player                          \\
+ftr          & The number of free throws a player attempts per field goal attempt      \\
+yr           & Year in college of the player                                           \\
+ht           & Height of the player                                                    \\
+new.school   & School the player transferred to                                        \\
+dpbm     & The player's defensive contribution in terms of points above league average per 100 possessions \\ 
+\bottomrule
 \end{tabular}
+}
+\caption{Variable Explanations}
+\label{tab:data_expl}
 \end{table}
+
+\section{Linear Models}
+\label{sec:lms}
+To start, I created a correlation matrix of the data, the results of which are shown in figure~\ref{fig:corrplot}. The first 12 entries in the matrix, from Min\_per to dpbm reference the player's stats from the year before they transferred, while the last 12 correspond to the player's stats from the year after they transferred. The plot shows that defensive metrics are a bit more correlated with each other year to year than offensive metrics. The two variables I am interested in predicting are the player's offensive rating and defensive box plus minus for the year after they transferred. I started by creating a linear model for each, using only offensive and defensive stats, respectively. For the model predicting the next season's offensive rating, the following predictors were used from the previous season: ORtg, eFG, ORB\_per, AST\_per, TO\_per, ftr, fromp5, top5, Min\_per, and usg. For the model predicting the next season's defensive rating, the following predictors were used from the previous season: dpbm, DRB\_per, blk\_per, stl\_per, fromp5, top5, and Min\_per. The data was split into training and testing sets at random, with 70\% of the data being used as a training set and the other 30\% being used for testing. The models for offense and defense are discussed in \ref{subsec:olm} and \ref{subsec:dlm}, respectively.
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[width=\textwidth]{corrplot}
+	\caption{A correlation matrix plot of the variables in the dataset.}
+	\label{fig:corrplot}
+\end{figure}
+
+\subsection{Offensive Model}
+\label{subsec:olm}
+In the linear model to predict the next season's offensive efficiency, the statistically significant factors at the .05 significance level were ORtg, ORB\_per, AST\_per, frt, fromp5, Min_per, usg. Plot~\ref{fig:olm.test.error} shows the absolute errors on the test set of the model. There are many outliers in this model due to players having very high or low metrics due to playing very little the year before they transferred. The root mean squared error on the test set of this model is 12.53. The model does perform well when predicting whether or not players will improve or not the next year in offensive rating. The model predicted 77.2\% of the players who improved their offensive rating correctly, and 67.4\% of the players who did not improve their offensive rating correctly, for an overall correct prediction rate of 73.2\%. When the model is re-run, but this time only with significant factors from the first running of the model, the root mean squared test error is lowered to 12.27. This time, the model correctly predicts 74.0\% of improvements and 70.6\% of non-improvements, for an overall correct rate of 72.6\%. The results of these two models are also shown in table~\ref{tab:olm_results}. While the model's RMSE is a bit high, it appears to do well when predicting improvements and non-improvements for players. In section~\ref{sec:cms}, we will see if setting the model's goal as classifying improvements and non-improvements helps these metrics.
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[width=\textwidth]{olm.test.error}
+	\caption{A plot of the absolute test set error from the offensive linear model.}
+	\label{fig:olm.test.errort}
+\end{figure}
+
+\begin{table}[]
+\centering
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{@{}ll@{}}
+\toprule
+Model & RMSE & Correct Improvement & Correct Non-improvement & Overall Correct \\
+\midrule
+First Linear Model & 12.53 & 77.2\% & 67.4\% & 73.2\% \\
+Significant Predictors Only & 12.27 & 74.0\% & 70.6\% & 72.6\% \\
+\bottomrule
+\end{tabular}
+}
+\caption{Offensive Linear Model Evaluators}
+\label{tab:olm_results}
+\end{table}
+
+\subsection{Defensive Model}
+\label{subsec:dlm}
+In the linear model to predict the following season's defensive box plus minus, the statistically significant factors at the .05 significance level were dbpm, DRB\_per, blk\_per, fromp5, top5, and Min\_per. Plot~\ref{fig:dlm.test.error} shows the absolute errors on the test set for this model. Similarly to the offensive model, there are some outliers due to players having very little playing time. The RMSE on the test set of this model is 1.22. Since dbpm is read on a different scale than ORtg, we cannot compare the RMSE's of the models to determine which is easier to predict, although I will compare the RMSE's of different types of models for offense and defense. In terms of predicting improvement, this model correctly predicted 75.6\% and 72.7\% of improvements and non-improvements, respectively. The overall correct prediction rate for this model is 74.2\%. Defensive improvement is a bit more inconsistent than offensive improvement, as it is less of a certainty for a player to improve their defensive traits year over year than their offensive ones. This means in theory, predicting defensive improvement is a bit more difficult, but this model actually predicts it at a similar rate as the offensive model did. When the model is re-run to only include significant factors, the RMSE on the test set remains 1.22. The classification rates of this model are 76.3\% for improvements and 73.1\% for non-improvements, for an overall rate of 74.7\%. The summary of these results is also shown in table~ref{tab:dlm_results}.
+
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[width=\textwidth]{dlm.test.error}
+	\caption{A plot of the absolute test set error from the defensive linear model.}
+	\label{fig:dlm.test.errort}
+\end{figure}
+
+\begin{table}[]
+\centering
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{@{}ll@{}}
+\toprule
+Model & RMSE & Correct Improvement & Correct Non-improvement & Overall Correct \\
+\midrule
+First Linear Model & 1.22 & 75.6\% & 72.7\% & 74.2\% \\
+Significant Predictors Only & 1.22 & 76.3\% & 73.1\% & 74.7\% \\
+\bottomrule
+\end{tabular}
+}
+\caption{Defensive Linear Model Evaluators}
+\label{tab:olm_results}
+\end{table}
+
+\section{Classification Models}
+\label{sec:cms}
 
 
 \end{document}
