@@ -106,35 +106,94 @@ set.seed(1234)
 traindex <- sample(1:nrow(fulldata),.7*nrow(fulldata))
 train <- ortg[traindex,]
 test <- ortg[-traindex,]
-log_ortg <- glm(oimp~ORtg+eFG+ORB_per+AST_per+TO_per+ftr+as.factor(fromp5)+as.factor(top5)+Min_per+usg,data=train)
+log_ortg <- glm(oimp~ORtg+eFG+ORB_per+AST_per+TO_per+ftr+as.factor(fromp5)+as.factor(top5)+Min_per+usg,data=train,family='binomial')
 summary(log_ortg)
-predictions <- predict(lin_ortg,test)
+predictions <- predict(log_ortg,test,type='response')
 test_ortg <- cbind(test,predictions)
-plot(abs(test_ortg$predictions-test_ortg$ORTG),ylab='Absolute Error',main='Test Set Error of Offensive Rating Linear Model')
-mean(sqrt((test_ortg$predictions-test_ortg$ORTG)^2))
-improved <- test %>% filter(oimp==1)
-nrow(improved %>% filter(predictions-ORtg > 0)) / nrow(improved)
-deproved <- test_ortg %>% filter(ORTG-ORtg < 0)
-nrow(deproved %>% filter(predictions-ORtg < 0)) / nrow(deproved)
-(nrow(improved %>% filter(predictions-ORtg > 0)) + nrow(deproved %>% filter(predictions-ORtg < 0))) / (nrow(improved) + nrow(deproved))
+test_ortg$round_predict <- ifelse(test_ortg$predictions > .5,1,0)
+mean((test_ortg$oimp-test_ortg$predictions)^2)
+improved <- test_ortg %>% filter(oimp==1)
+nrow(improved %>% filter(round_predict==1)) / nrow(improved)
+deproved <- test_ortg %>% filter(oimp==0)
+nrow(deproved %>% filter(round_predict==0)) / nrow(deproved)
+(nrow(improved %>% filter(round_predict==1)) + nrow(deproved %>% filter(round_predict==0))) / (nrow(improved) + nrow(deproved))
+#significant only
+log_ortg <- glm(oimp~ORtg+TO_per+as.factor(fromp5)+usg,data=train,family='binomial')
+summary(log_ortg)
+predictions <- predict(log_ortg,test,type='response')
+test_ortg <- cbind(test,predictions)
+test_ortg$round_predict <- ifelse(test_ortg$predictions > .5,1,0)
+mean((test_ortg$oimp-test_ortg$predictions)^2)
+improved <- test_ortg %>% filter(oimp==1)
+nrow(improved %>% filter(round_predict==1)) / nrow(improved)
+deproved <- test_ortg %>% filter(oimp==0)
+nrow(deproved %>% filter(round_predict==0)) / nrow(deproved)
+(nrow(improved %>% filter(round_predict==1)) + nrow(deproved %>% filter(round_predict==0))) / (nrow(improved) + nrow(deproved))
+#same as linear
+log_ortg <- glm(oimp~ORtg+ORB_per+AST_per+ftr+as.factor(fromp5)+Min_per+usg,data=train,family='binomial')
+summary(log_ortg)
+predictions <- predict(log_ortg,test,type='response')
+test_ortg <- cbind(test,predictions)
+test_ortg$round_predict <- ifelse(test_ortg$predictions > .5,1,0)
+mean((test_ortg$oimp-test_ortg$predictions)^2)
+improved <- test_ortg %>% filter(oimp==1)
+nrow(improved %>% filter(round_predict==1)) / nrow(improved)
+deproved <- test_ortg %>% filter(oimp==0)
+nrow(deproved %>% filter(round_predict==0)) / nrow(deproved)
+(nrow(improved %>% filter(round_predict==1)) + nrow(deproved %>% filter(round_predict==0))) / (nrow(improved) + nrow(deproved))
+##DRTG classification
+drtg <- fulldata %>% select(Min_per,DRB_per,blk_per,stl_per,dbpm,DBPM,fromp5,top5)
+drtg$dimp <- ifelse(drtg$DBPM > drtg$dbpm,1,0)
+set.seed(1234)
+traindex <- sample(1:nrow(fulldata),.7*nrow(fulldata))
+train <- drtg[traindex,]
+test <- drtg[-traindex,]
+log_drtg <- glm(dimp~dbpm+DRB_per+blk_per+stl_per+as.factor(fromp5)+as.factor(top5)+Min_per,data=train,family='binomial')
+summary(log_drtg)
+predictions <- predict(log_drtg,test,type='response')
+test_drtg <- cbind(test,predictions)
+test_drtg$round_predict <- ifelse(test_drtg$predictions > .5,1,0)
+mean((test_drtg$dimp-test_drtg$predictions)^2)
+improved <- test_drtg %>% filter(dimp==1)
+nrow(improved %>% filter(round_predict==1)) / nrow(improved)
+deproved <- test_drtg %>% filter(dimp==0)
+nrow(deproved %>% filter(round_predict==0)) / nrow(deproved)
+(nrow(improved %>% filter(round_predict==1)) + nrow(deproved %>% filter(round_predict==0))) / (nrow(improved) + nrow(deproved))
+#same as linear
+log_drtg <- glm(dimp~dbpm+DRB_per+blk_per+as.factor(fromp5)+as.factor(top5)+Min_per,data=train,family='binomial')
+summary(log_drtg)
+predictions <- predict(log_drtg,test,type='response')
+test_drtg <- cbind(test,predictions)
+test_drtg$round_predict <- ifelse(test_drtg$predictions > .5,1,0)
+mean((test_drtg$dimp-test_drtg$predictions)^2)
+improved <- test_drtg %>% filter(dimp==1)
+nrow(improved %>% filter(round_predict==1)) / nrow(improved)
+deproved <- test_drtg %>% filter(dimp==0)
+nrow(deproved %>% filter(round_predict==0)) / nrow(deproved)
+(nrow(improved %>% filter(round_predict==1)) + nrow(deproved %>% filter(round_predict==0))) / (nrow(improved) + nrow(deproved))
 
 
 
-
-
-
-####### ML Models
+####### ML Numerical Prediction Models
 #ORTG ML model
+library(keras)
+ortg <- fulldata %>% select(Min_per,ORtg,usg,eFG,ORB_per,AST_per,TO_per,ftr,ORTG,fromp5,top5,oimp)
+set.seed(1234)
+traindex <- sample(1:nrow(fulldata),.7*nrow(fulldata))
+train <- ortg[traindex,]
+test <- ortg[-traindex,]
+label_train <- train$ORTG
+train2 <- train %>% select(-ORTG) %>% scale()
+label_test <- test$ORTG
 test2 <- test %>% select(-ORTG) %>% scale()
 model <- keras_model_sequential() %>%
-  layer_dense(units=8,activation='relu', input_shape=ncol(train2)) %>%
-  layer_dense(units=6,activation='relu') %>%
+  layer_dense(units=11, activation='relu',input_shape=ncol(train2)) %>%
   layer_dense(units=1)
 model %>% compile(
   loss='mse',
   optimizer=optimizer_rmsprop(),
   metrics=list('mean_absolute_error')
-)  
+)
 fit <- model %>% fit(
   train2,
   label_train,
@@ -148,18 +207,16 @@ load_model_weights_tf(model, './checkpoints/my_checkpoint')
 plot(fit)
 model %>% evaluate(test2,label_test)
 prediction <- predict(model,test2)
-plot(prediction-label_test)
+plot(abs(prediction-label_test),ylab='Absolute Error',main='Test Set Error of ORtg Machine Learning Model')
 mean(sqrt((prediction-label_test)^2))
-summary(label_test)
-summary(prediction)
 test_ortg_nn <- cbind(test,prediction)
-improved <- test_ortg_nn %>% filter(ORTG-ORtg > 0)
-nrow(improved %>% filter(prediction-ORtg > 0)) / nrow(improved)
-nrow(deproved %>% filter(predictions-ORtg < 0)) / nrow(deproved)
+improved <- test_ortg_nn %>% filter(oimp==1)
+nrow(improved %>% filter(prediction > ORtg)) / nrow(improved)
+deproved <- test_ortg_nn %>% filter(oimp==0)
+nrow(deproved %>% filter(prediction < ORtg)) / nrow(deproved)
+(nrow(improved %>% filter(prediction > ORtg)) + nrow(deproved %>% filter(prediction < ORtg))) / (nrow(improved) + nrow(deproved))
 
-
-
-#DRTG linear model
+#DRTG ML model
 drtg <- fulldata %>% select(Min_per,DRB_per,blk_per,stl_per,dbpm,DBPM,fromp5,top5)
 set.seed(1234)
 traindex <- sample(1:nrow(fulldata),.7*nrow(fulldata))
@@ -168,46 +225,120 @@ label_train_d <- train$DBPM
 train2 <- train %>% select(-DBPM) %>% scale()
 test <- drtg[-traindex,]
 label_test_d <- test$DBPM
-lin_drtg <- lm(DBPM~dbpm+DRB_per+blk_per+stl_per+fromp5+top5+Min_per,data=train)
-summary(lin_drtg)
-predictions <- predict(lin_drtg,test)
-test <- cbind(test,predictions)
-plot(test$predictions-test$DBPM)
-mean(sqrt((test$predictions-test$dbpm)^2)) 
-improved <- test %>% filter(DBPM-dbpm > 0)
-nrow(improved %>% filter(predictions-dbpm > 0)) / nrow(improved)
-deproved <- test %>% filter((DBPM-dbpm < 0))
-nrow(deproved %>% filter(predictions-dbpm < 0)) / nrow(deproved)
-
-
-
-
-
 test2 <- test %>% select(-DBPM) %>% scale()
-model <- keras_model_sequential() %>%
-  layer_dense(units=6,activation='relu', input_shape=ncol(train2)) %>%
-  layer_dense(units=3,activation='relu') %>%
+model2 <- keras_model_sequential() %>%
+  layer_dense(units=7,activation='relu', input_shape=ncol(train2)) %>%
   layer_dense(units=1)
-model %>% compile(
+model2 %>% compile(
   loss='mse',
   optimizer=optimizer_rmsprop(),
   metrics=list('mean_absolute_error')
 )  
-fit <- model %>% fit(
+fit2 <- model2 %>% fit(
   train2,
   label_train_d,
+  batch_size=50,
   epochs=300,
   validation_split=.1,
   verbose=1
 )
-plot(fit)
-model %>% evaluate(test2,label_test_d)
-prediction <- predict(model,test2)
-plot(prediction-label_test)
-summary(label_test)
-summary(prediction)
+save_model_weights_tf(model2, './checkpoints_def/my_checkpoint')
+load_model_weights_tf(model2, './checkpoints_def/my_checkpoint')
+plot(fit2)
+model2 %>% evaluate(test2,label_test_d)
+prediction <- predict(model2,test2)
+plot(abs(prediction-label_test_d),ylab='Absolute Error',main='Test Set Error of ORtg Machine Learning Model')
+mean(sqrt((prediction-label_test_d)^2))
 test <- cbind(test,prediction)
-improved <- test %>% filter(dbpm-DBPM > 0)
-nrow(improved %>% filter(predictions-dbpm > 0)) / nrow(improved)
+improved <- test %>% filter(DBPM-dbpm > 0)
+nrow(improved %>% filter(prediction-dbpm > 0)) / nrow(improved)
 deproved <- test %>% filter((DBPM-dbpm < 0))
-nrow(deproved %>% filter(predictions-dbpm < 0)) / nrow(deproved)
+nrow(deproved %>% filter(prediction-dbpm < 0)) / nrow(deproved)
+(nrow(improved %>% filter(prediction-dbpm > 0)) + nrow(deproved %>% filter(prediction-dbpm < 0))) / (nrow(improved) + nrow(deproved))
+###Classification ML models
+##Offensive classification
+ortg <- fulldata %>% select(Min_per,ORtg,usg,eFG,ORB_per,AST_per,TO_per,ftr,fromp5,top5,oimp)
+set.seed(1234)
+traindex <- sample(1:nrow(fulldata),.7*nrow(fulldata))
+train <- ortg[traindex,]
+test <- ortg[-traindex,]
+label_train <- train$oimp
+label_train <- to_categorical(label_train,2)
+train2 <- train %>% select(-oimp) %>% scale()
+label_test <- test$oimp
+label_test <- to_categorical(label_test,2)
+test2 <- test %>% select(-oimp) %>% scale()
+model_class <- keras_model_sequential() %>%
+  layer_dense(units=11, activation='relu',input_shape=ncol(train2)) %>%
+  layer_dense(units=2, activation='sigmoid')
+model_class %>% compile(
+  loss='binary_crossentropy',
+  optimizer=optimizer_rmsprop(),
+  metrics=list('accuracy')
+)
+fit_class <- model_class %>% fit(
+  train2,
+  label_train,
+  batch_size=50,
+  epochs=300,
+  validation_split=.1,
+  verbose=1
+)
+save_model_weights_tf(model_class, './checkpoints_off_class/my_checkpoint')
+load_model_weights_tf(model_class, './checkpoints_off_class/my_checkpoint')
+plot(fit)
+model_class %>% evaluate(test2,label_test)
+prediction <- predict(model_class,test2)
+prediction_prob <- prediction[,2]
+mean(sqrt((prediction_prob-label_test[,2])^2))
+test_ortg_nn <- cbind(test,prediction_prob)
+test_ortg_nn$round_predict <- ifelse(test_ortg$predictions > .5, 1,0)
+improved <- test_ortg_nn %>% filter(oimp==1)
+nrow(improved %>% filter(round_predict==1)) / nrow(improved)
+deproved <- test_ortg_nn %>% filter(oimp==0)
+nrow(deproved %>% filter(round_predict==0)) / nrow(deproved)
+(nrow(improved %>% filter(round_predict==1)) + nrow(deproved %>% filter(round_predict==0))) / (nrow(improved) + nrow(deproved))
+##Defensive classificatoin
+drtg <- fulldata %>% select(Min_per,DRB_per,blk_per,stl_per,dbpm,DBPM,fromp5,top5)
+drtg$dimp <- ifelse(drtg$DBPM > drtg$dbpm,1,0)
+drtg <- drtg %>% select(-DBPM)
+set.seed(1234)
+traindex <- sample(1:nrow(fulldata),.7*nrow(fulldata))
+train <- drtg[traindex,]
+test <- drtg[-traindex,]
+label_train <- train$dimp
+label_train <- to_categorical(label_train,2)
+train2 <- train %>% select(-dimp) %>% scale()
+label_test <- test$dimp
+label_test <- to_categorical(label_test,2)
+test2 <- test %>% select(-dimp) %>% scale()
+model_classd <- keras_model_sequential() %>%
+  layer_dense(units=7, activation='relu',input_shape=ncol(train2)) %>%
+  layer_dense(units=2, activation='sigmoid')
+model_classd %>% compile(
+  loss='binary_crossentropy',
+  optimizer=optimizer_rmsprop(),
+  metrics=list('accuracy')
+)
+fit_classd <- model_classd %>% fit(
+  train2,
+  label_train,
+  batch_size=50,
+  epochs=300,
+  validation_split=.1,
+  verbose=1
+)
+save_model_weights_tf(model_classd, './checkpoints_off_class/my_checkpoint')
+load_model_weights_tf(model_classd, './checkpoints_off_class/my_checkpoint')
+model_classd %>% evaluate(test2,label_test)
+prediction <- predict(model_classd,test2)
+prediction_prob <- prediction[,2]
+mean(sqrt((prediction_prob-label_test[,2])^2))
+test_drtg_nn <- cbind(test,prediction_prob)
+test_drtg_nn$round_predict <- ifelse(test_drtg_nn$prediction_prob > .5, 1,0)
+improved <- test_drtg_nn %>% filter(dimp==1)
+nrow(improved %>% filter(round_predict==1)) / nrow(improved)
+deproved <- test_drtg_nn %>% filter(dimp==0)
+nrow(deproved %>% filter(round_predict==0)) / nrow(deproved)
+(nrow(improved %>% filter(round_predict==1)) + nrow(deproved %>% filter(round_predict==0))) / (nrow(improved) + nrow(deproved))
+
