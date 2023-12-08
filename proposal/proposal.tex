@@ -1,0 +1,40 @@
+\documentclass[12pt]{article}
+
+\usepackage{amsmath}
+\usepackage[margin = 1in]{geometry}
+\usepackage[colorlinks=true, citecolor=blue]{hyperref}
+\usepackage{hyperref}
+
+\title{Project Proposal for STAT 3494W}
+\author{Miles Kee}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+\label{sec:intro}
+When the NCAA decided to eliminate the rule of athletes needing to sit out a season after transferring due to the COVID-19 pandemic, it created a frenzy in the college basketball world. Record numbers of players transferring were seen immediately after this ruling. Since then, the NCAA has decided to make this elimination permanent. This, combined with student athletes newfound ability to profit off their name, image, and likeness, has turned the college basketball offseason into a scene that is more akin to the free agency period in professional sports. Over 1500 players entered the transfer portal during the 2023 offseason. College coaches have began rebuilding their entire teams using the transfer portal instead of the traditional program-building methods of recruiting well and emphasizing development. New St. John's coach Rick Pitino was hired in March, and by early May, he had already brought in eight new transfers while losing another eight to the transfer portal. This type of roster turnover has become routine in the college game, especially when a coach is fired or hired. In Section~\ref{sec:aims}, I will discuss how programs can attempt to improve their transfer portal recruiting process.
+
+
+\section{Specific Aims}
+\label{sec:aims}
+For my project, I would like to work on building a model to efficiently examine all transfers in the transfer portal and estimate their chance of success at their new schools. I hope to attempt to build a neural network that examines a variety of factors when considering success. The overarching question the project asks is "Can we use machine learning to evaluate transfers in college basketball?" One of the main statistical questions this leads to is how to best build this model. The main areas of inputs I would have are the transfer's previous school, new school, position, and success at their old school. Within each of these "factor umbrellas," I will consider different categories. In the previous and new school fields, I think examining the conference the schools are in, the level of competition played, and the historic success of the programs are important. When discussing previous success, I want to look at various measures of efficiency on both offense and defense, but also value counting stats that are reliant on usage rates. A common fallacy, especially in college basketball where sample sizes can be quite small, is that a player who is efficient in low-usage situations will also be efficient when their usage increases, so this is why I believe counting and volume stats should play a role as well. I also think their prestige as a recruit coming out of high school can be a factor, as we have seen many highly ranked players play poorly at their first school just to go on and flourish at their new one because their first school was simply a bad fit. 
+
+\section{Data}
+\label{sec:data}
+There is plethora of readily available data for this project from the website barttorvik.com. The website has a database of every player who was in the transfer portal, as well as any advanced or non-advanced stat that is used in player evaluation. The creator of the website made the site with projects like this in mind, as all of this data is easily downloadable into the programming language of the user's choosing. There is also college basketball player data available on the site evanmiya.com, including a section completely devoted to the transfer portal. This site also has a system in place for condensing player rankings into one number, similar to WAR in baseball, that will be helpful to use in my project. 
+
+\section{Research Design and Methods}
+\label{sec:rdam}
+At this time, I think I would like to attempt to use a neural network to answer my question. In some of the research I have done related to my topic, people have also used classification methods such as K nearest neighbors and random forest when evaluating and predicting players. I am open to considering and trying different statistical learning procedures when trying to create my model, and will evaluate each one on its merits. For now, however, I think a machine learning model will work best based on the number and type of inputs I want to include, as discussed in Section~\ref{sec:aims} .
+
+
+\section{Literature}
+\label{sec:lit}
+I have found many relevant papers to this topic that have been written. \href{https://libraetd.lib.virginia.edu/downloads/sn009z84g?filename=Mente_Sindhura_Accuracy_of_Machine_Learning_Algorithms_in_Predicting_College_Basketball_Games.pdf}{This paper} and \href{https://www.researchgate.net/publication/257749099_Predicting_college_basketball_match_outcomes_using_machine_learning_techniques_some_results_and_lessons_learned}{as well as this paper} look at using machine learning techniques to predict the outcome of college basketball games. \href{https://towardsdatascience.com/predicting-2020-21-nbas-most-valuable-player-using-machine-learning-24aaa869a740}{This article} used machine learning techniques to predict the MVP of the NBA, so its relevance is in using machine learning to predict player efficiency. Finally, \href{https://briannalytle7.medium.com/reclassifying-nba-players-using-machine-learning-c2a316875fd1}{this project} attempts to achieve a similar goal by creating a system to classify NBA players using machine learning.
+
+\section{Discussion}
+\label{sec:discussion}
+The main goal of this project is to create a more efficient way to look at the transfer portal in college basketball. There are simply too many players and too many schools to carefully examine each player who enters the portal, but this model will hopefully help to identify diamonds in the rough. It also can indicate highly sought after transfers who may be unlikely to perform well with their new school. One of the reasons I chose to analyze college basketball for this model is because I recently started a position as an analyst with the UConn Men's Basketball team, so ideally I will work with some of the coaches and staff on the basketball side to help tune the model. If the project leads to helpful conclusions, they likely will be open to using it this upcoming year when players begin to enter the portal. I think the biggest challenge of this project will be finding the right balance between including relevant factors but not overfitting the model. The fact that college basketball players are 18-22 years old usually also adds a challenge in the sense that there are many factors outside of basketball that affect these players and it will be hard to account for those. One of the limitations of this is that I will be reliant on using a few all-encompassing metrics of player evaluation, and these metrics can sometimes over or under state a player's ability.  
+
+\end{document}
