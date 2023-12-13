@@ -26,6 +26,10 @@ fulldata$fromp5 <- ifelse(fulldata$conf %in% c('P12','B10','SEC','B12','BE','ACC
 fulldata$top5 <- ifelse(fulldata$Conference %in% c('P12','B10','SEC','B12','BE','ACC'),1,0)
 fulldata$oimp <- ifelse(fulldata$ORTG > fulldata$ORtg,1,0)
 fulldata$dimp <- ifelse(fulldata$DBPM > fulldata$dbpm,1,0)
+nrow(fulldata %>% filter(oimp==1)) / nrow(fulldata)
+nrow(fulldata %>% filter(oimp==0)) / nrow(fulldata)
+nrow(fulldata %>% filter(dimp==1)) / nrow(fulldata)
+nrow(fulldata %>% filter(dimp==0)) / nrow(fulldata)
 x <- cor(fulldata[,c(4:14,18,23:33,36)])
 library(corrplot)
 plot <- corrplot(x)
@@ -286,13 +290,12 @@ fit_class <- model_class %>% fit(
 )
 save_model_weights_tf(model_class, './checkpoints_off_class/my_checkpoint')
 load_model_weights_tf(model_class, './checkpoints_off_class/my_checkpoint')
-plot(fit)
 model_class %>% evaluate(test2,label_test)
 prediction <- predict(model_class,test2)
 prediction_prob <- prediction[,2]
 mean(sqrt((prediction_prob-label_test[,2])^2))
 test_ortg_nn <- cbind(test,prediction_prob)
-test_ortg_nn$round_predict <- ifelse(test_ortg$predictions > .5, 1,0)
+test_ortg_nn$round_predict <- ifelse(test_ortg_nn$prediction_prob > .5, 1,0)
 improved <- test_ortg_nn %>% filter(oimp==1)
 nrow(improved %>% filter(round_predict==1)) / nrow(improved)
 deproved <- test_ortg_nn %>% filter(oimp==0)
@@ -328,8 +331,8 @@ fit_classd <- model_classd %>% fit(
   validation_split=.1,
   verbose=1
 )
-save_model_weights_tf(model_classd, './checkpoints_off_class/my_checkpoint')
-load_model_weights_tf(model_classd, './checkpoints_off_class/my_checkpoint')
+save_model_weights_tf(model_classd, './checkpoints_def_class/my_checkpoint')
+load_model_weights_tf(model_classd, './checkpoints_def_class/my_checkpoint')
 model_classd %>% evaluate(test2,label_test)
 prediction <- predict(model_classd,test2)
 prediction_prob <- prediction[,2]
